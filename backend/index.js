@@ -1,0 +1,6 @@
+/*
+npm init
+npm i socket.io
+npm i express
+npm i cors
+*/
