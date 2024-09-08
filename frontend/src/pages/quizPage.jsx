@@ -1,7 +1,14 @@
-import React from "react"
+import React, {useState} from "react"
 import {Link} from "react-router-dom";
+import ConnexionPage from "./connexionPage";
 
-const quizPage = () => {
+const QuizPage = () => {
+    const[token, setToken] = useState();
+    
+    if(!token){
+        return <ConnexionPage setToken = {setToken}/>;
+    }
+
     return (
         <>
             <h1>Bienvenue dans le quiz</h1>
@@ -10,4 +17,4 @@ const quizPage = () => {
     );
 }
 
-export default quizPage;
+export default QuizPage;
