@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
+import propTypes from  'prop-types';
 import "../../reset.css";
+import { json } from "react-router-dom";
 
-const ConnexionPage = () => {
+
+const ConnexionPage = ({setToken}) => {
     const [id, setID] = useState(0);
     const [name, setName] = useState("");
     const [password,setPassword] = useState("");
@@ -11,30 +14,27 @@ const ConnexionPage = () => {
     const handelSubmit = async(e) => {
         e.preventDefault(); //empeche le bouton de soummettre le formulaire
 
-        const fetchRequest = await fetch("http://localhost:5000/findUser", {
+        const token = await fetch("http://localhost:5000/findUser", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json' //indique que l'url est en json
             },
             body: JSON.stringify({name, password}) //ajouter d'autres parametres jason venant du forms
-        });
+        }).then(data => data.json());
 
-        if (!fetchRequest.ok) {
+        if (!token.ok) {
             // Handle non-200 responses
-            console.log("Error: ", fetchRequest.statusText);
+            console.log("Error: ", token.statusText);
             return;
         }
         
-        const verifyUser = await fetchRequest.json();
-        console.log("From fetch request of the submit button: ", fetchRequest);
+        console.log("Token from fetch reSquest of the submit button: ", token);
 
-        //Résoud selon la réponse recu
-        if(verifyUser.message === "User not found"){ //condition vérifie le type de donné et le contenue
-            console.log("User not found");
+        if(token){
+            setToken(token);
         }
-        else {
-            console.log("User found: ", verifyUser);
-            
+        else{
+            console.log("No token reveived");
         }
     }
 
@@ -55,7 +55,7 @@ const ConnexionPage = () => {
         <>
             <div className="connexion-page-main">
                 <h1>Login</h1>
-                <form action="" method="POST">
+                <form action="" method="POST" onSubmit={handelSubmit}>
                     <i className="fa-solid fa-user"></i>
                     <input 
                         type="text" 
@@ -72,11 +72,15 @@ const ConnexionPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <button type="submit" onClick={handelSubmit}>Login</button>
+                    <button type="submit">Login</button>
                 </form>
             </div>
         </>
     );
+}
+
+ConnexionPage.propTypes = {
+    setToken: propTypes.func.isRequired
 }
 
 export default ConnexionPage;

@@ -5,6 +5,8 @@ import ConnexionPage from "./connexionPage";
 const QuizPage = () => {
     const[token, setToken] = useState();
     
+    console.log("setToken function", setToken);
+
     if(!token){
         return <ConnexionPage setToken = {setToken}/>;
     }
