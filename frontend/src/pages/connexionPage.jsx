@@ -1,41 +1,30 @@
 import React, { useEffect, useState } from "react";
 import "../../reset.css";
+import AuthProvider, { useAuth } from "../context/AuthProvider";
 
 const ConnexionPage = () => {
-    const [id, setID] = useState(0);
-    const [name, setName] = useState("");
-    const [password,setPassword] = useState("");
-    const [age, setAge] = useState(0);
+    let {name, password, age} = useAuth();
+    const {loginAction} = useAuth();
+    
+    let setName, setPassword, setAge;
+    [name, setName] = useState("");
+    [password, setPassword] = useState("");
+    [age, setAge] = useState(0);
+    let [id, setID] = useState(0);
+    
 
     //Rechercher l'utilisateur et vérifier les infos quand le form html est soummis
     const handelSubmit = async(e) => {
         e.preventDefault(); //empeche le bouton de soummettre le formulaire
-
-        const fetchRequest = await fetch("http://localhost:5000/findUser", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json' //indique que l'url est en json
-            },
-            body: JSON.stringify({name, password}) //ajouter d'autres parametres jason venant du forms
-        });
-
-        if (!fetchRequest.ok) {
-            // Handle non-200 responses
-            console.log("Error: ", fetchRequest.statusText);
-            return;
-        }
         
-        const verifyUser = await fetchRequest.json();
-        console.log("From fetch request of the submit button: ", fetchRequest);
+        
+        const userData ={
+            name,
+            password
+        }
 
-        //Résoud selon la réponse recu
-        if(verifyUser.message === "User not found"){ //condition vérifie le type de donné et le contenue
-            console.log("User not found");
-        }
-        else {
-            console.log("User found: ", verifyUser);
-            
-        }
+        loginAction(userData);
+
     }
 
     //Pour ajouter le script pour les icone fontawesome

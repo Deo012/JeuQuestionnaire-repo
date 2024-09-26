@@ -2,10 +2,9 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 const questionSchema = new Schema({
-    _id: Int16Array,
+    _id: Number,
     question: String,
-    option:[String],
-    answer:Number
+    answer: Boolean
 });
 
-module.exports = mongoose.model("questionModel", questionSchema);
+module.exports = mongoose.model("questions", questionSchema);

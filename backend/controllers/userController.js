@@ -9,6 +9,7 @@ exports.findUser = async (req, res, next) =>{
         const checkName = await users.findOne({name});
         console.log("From controller backend full data: ", checkName); //to verify response
         if(checkName){
+            console.log("checkname verifier")
             return res.json(checkName); //reponse en json, attendue par le fetch frontend 
         }
         return res.json({message: "User not found"});//meme en json car c'Est le format attendue en frontend
@@ -19,3 +20,5 @@ exports.findUser = async (req, res, next) =>{
     };
     
 };
+
+
