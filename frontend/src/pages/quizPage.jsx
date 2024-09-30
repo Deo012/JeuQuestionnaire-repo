@@ -9,6 +9,10 @@ const quizPage = () => {
     const [socket, setSocket] = useState(null); //monitor the connection socket
     let [currentQuestion, setCurrentQuestion] = useState();
     let [responseCurrentQuestion, setResponseCurrentQuestion] = useState();
+    let [winner, setWinner] = useState();
+    let [winnerScore, setWinnerScore] = useState(0);
+    let [winnerTime, setWinnerTime] = useState(0);
+    let [tempsReponseQuestion, setTempsReponseQuesiton] = useState();
 
     useEffect(() => {
         if(name)
@@ -25,6 +29,12 @@ const quizPage = () => {
                 //Reception des questions
                 newSocket.on("sendQuestion", (data) => {
                     setCurrentQuestion(data);
+                    setTempsReponseQuesiton(Date.now());
+                });
+                newSocket.on("gameEnd", (data) => {
+                    setWinner(data.winner);
+                    setWinnerScore(data.score);
+                    setWinnerTime(data.winnerTime);
                 });
             })
 
@@ -38,16 +48,18 @@ const quizPage = () => {
 
     //Vérification des button vrai ou faux
     function handleReponse(valeur){
-        if(valeur == true){
-            console.log("Utilisateur a repondu: true");
-            setResponseCurrentQuestion(true);
-            socket.emit("reponseQuestion", {resp: responseCurrentQuestion, ques: currentQuestion, nam: name});
-        }
-        else{
-            console.log("Utilisateur a repondu: false");
-            setResponseCurrentQuestion(false);
-            socket.emit("reponseQuestion", {resp: responseCurrentQuestion, ques: currentQuestion, nam: name});
-        }
+        console.log(`Utilisateur a répondu: ${valeur}`);
+    
+        // Met à jour l'état immédiatement, mais utilise la valeur directement pour l'emit (la fonction est asynchrone- not reliable for emit)
+        setResponseCurrentQuestion(valeur);
+
+        //Calcul du temps de réponse
+        const delta = Date.now() - tempsReponseQuestion;        //En millisecondes
+        const secondes = Math.floor(delta/1000);                //En secondes
+
+        
+        // Utiliser `valeur` pour l'emit, car setState est asynchrone et ne met pas à jour immédiatement
+        socket.emit("reponseQuestion", { resp: valeur, ques: currentQuestion, nam: name, temps: secondes });
     };
 
     //les composants retournés
@@ -60,24 +72,33 @@ const quizPage = () => {
             <Link to="/connexionPage">Connexion page</Link>
             <hr/>
 
-            {
-            (currentQuestion != null)
-            ? 
-                <div>
-                    Question:
+            {winner == null ? (
+                
+                (currentQuestion != null)
+                ? 
                     <div>
-                        {currentQuestion}
+                        Question:
+                        <div>
+                            {currentQuestion}
+                        </div>
+                        <div>
+                            <button onClick={() =>handleReponse(true)}>Vrai</button>
+                            <button onClick={() =>handleReponse(false)}>Faux</button>
+                        </div>
                     </div>
+                : 
                     <div>
-                        <button onClick={() =>handleReponse(true)}>Vrai</button>
-                        <button onClick={() =>handleReponse(false)}>Faux</button>
+                        En attente d'autre joueurs...
                     </div>
-                </div>
-            : 
+
+            ):(
                 <div>
-                    En attente d'autre joueurs...
+                    <p>La partie est terminer</p>
+                    <p>Le gagnant est : {winner} avec un score de {winnerScore}</p>
+                    <p>Temps du gagant en secondes: {winnerTime}s</p>
+
                 </div>
-            }
+            )}
         </>
     );
 }

@@ -53,8 +53,6 @@ let questionsTab = [];
 //Ce code se lance automatiquement à chaque connection au serveur avec la fonciton socketIOClient() dans le code de la page jsx
 io.on("connection", (socket) => {
     console.log("New client connected");
-    let questionActuel = 0;
-    let score = 0;
 
     socket.on("enterRoom", async (data)=>{
         //console.log("Received enterRoom event from client:", data); // Verify data is received
@@ -68,6 +66,8 @@ io.on("connection", (socket) => {
                     name: data.nickname, 
                     score: data.score, 
                     questionOrder: [],
+                    currentQuestion: 0,
+                    tempsTotal: 0,
                     hasfinished: data.hasfinished
                 }
             );
@@ -84,20 +84,36 @@ io.on("connection", (socket) => {
 
             //Envoyer les questions aux joeurs
             //console.log("Dans la table players ", data.nickname , " est a l'index: ",gameRoom.players.findIndex( player => player.name == data.nickname));
-            let questionToSend = gameRoom.players[gameRoom.players.findIndex( player => player.name == data.nickname)].questionOrder[questionActuel].question;
+            let player = whoPlayed(data.nickname);
+            let questionActuel = getCurrentQuestion(player);
+            let questionToSend = player.questionOrder[questionActuel].question;
             io.emit("sendQuestion", questionToSend);  
         }
         //console.log(gameRoom);
         
         //Vérification de la question
         socket.on("reponseQuestion", (data) => {
-            //console.log("Lancement de vérification de la réponse frontend"); 
-            //console.log("Nom du gars", data.nam);
+            console.log("Lancement de vérification de la réponse frontend"); 
+            console.log("Nom du gars", data.nam);
             //console.log(gameRoom.players[gameRoom.players.findIndex( player => player.name == data.nam)].questionOrder[questionActuel].answer);
-            let correctReponse = gameRoom.players[gameRoom.players.findIndex( player => player.name == data.nam)].questionOrder[questionActuel].answer;
+            let player = whoPlayed(data.nam);
+            let questionActuel = getCurrentQuestion(player);
+            let correctReponse = getCurrentQuestionAnswer(player, questionActuel);
+            player.tempsTotal += data.temps;
+            console.log(data.resp)
             if(data.resp == correctReponse){
-                score += 1;
-                console.log("Nouveau score: ", score);
+                player.score += 1;
+                console.log("Nouveau score: ", getScore(player));
+            }
+            
+            player.currentQuestion += 1;
+            if(player.currentQuestion < 10){
+                let questionToSend = player.questionOrder[questionActuel].question;
+                io.emit("sendQuestion", questionToSend);
+            }
+            else{
+                player.hasfinished = true;
+                io.emit("gameEnd", {score: player.score, winner: player.name, winnerTime: player.tempsTotal});
             }
         })
     });
@@ -108,14 +124,18 @@ async function distribueQuestions() {
     console.log("Entrer dans la fonction startGame");
     const reponse = await questionModel.find()
     
-    //console.log("Voici reponse",reponse);
-    reponse.forEach(i => {
-        questionsTab.push(i)
-    })
-    //console.log("Question Tableau donne:", questionsTab);
+    //remplie le tableau des questions si elle est vide 
+    if(questionsTab.length == 0){
+        reponse.forEach(i => {
+            questionsTab.push(i)
+        })
+    }
 
+    //donner au joeurs les memes questions mais dans unordre différent
     gameRoom.players.forEach((player) => {
-        player.questionOrder = shuffle([...questionsTab]); // Use spread operator (...) to clone the array before shuffling
+        if(player.questionOrder.length == 0){                   //En cas de reconnexion en plein mislieur de partie
+            player.questionOrder = shuffle([...questionsTab]);  // Use spread operator (...) to clone the array before shuffling
+        }
     });
 
     //L'ordre des questions de chaque joueurs
@@ -124,6 +144,7 @@ async function distribueQuestions() {
     });
 }
 
+//Fonction trouvé sur l'internet
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -132,6 +153,42 @@ function shuffle(array) {
     return array;
 }
 
+/**- Description
+ * - Retourne l'object du joueur qui a jouer - 
+ * - Prends le nom du joueur en paramètre
+ * */
+function whoPlayed(person){
+     return gameRoom.players[gameRoom.players.findIndex( player => player.name == person)];
+}
+
+/**Description
+ * - Retourne le score du joueur voulu
+ * - Prend en parametre un object player venant de:  
+ *    - gmaeRoom= {players: [], ...}
+ */
+function getScore(person){
+    return person.score;
+}
+
+/**Description
+ * - Retourne l'index de la question actuel d'un joueur
+ * - Prend en parametre un object player venant de:  
+ *    - gmaeRoom= {players: [], ...}
+ */
+function getCurrentQuestion(person){
+    return person.currentQuestion;
+}
+/**Description
+ * - Retourne la réponse de la question actuel : true ou false
+ * - Parametre 1: un object player venant de:  
+ *    - gmaeRoom= {players: [], ...}
+ * - Parametre 2: le currentQuestion de l'object player
+ */
+function getCurrentQuestionAnswer(person, indexQ){
+    return person.questionOrder[indexQ].answer
+}
+
+//Important: app et io partage le meme serveur, donc l'instance écouté sur le port pour les allumer en meme temps
 server.listen(port, ()=>{
     console.log(`Serveur is running on port: ${port}`);
 });
