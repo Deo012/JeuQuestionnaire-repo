@@ -3,6 +3,8 @@ import ConnexionPage from "../pages/connexionPage"
 import {Link, Outlet} from "react-router-dom";
 import io from 'socket.io-client';
 import { useAuth } from "../context/AuthProvider";
+import "../../reset.css";
+import "./quizPage.css"
 
 const quizPage = () => {
     let {name} = useAuth()
@@ -68,37 +70,45 @@ const quizPage = () => {
     }
     return (
         <>
-            <h1>Bienvenue dans le quiz {name}</h1>
-            <Link to="/connexionPage">Connexion page</Link>
-            <hr/>
-
-            {winner == null ? (
-                
-                (currentQuestion != null)
-                ? 
-                    <div>
-                        Question:
-                        <div>
-                            {currentQuestion}
-                        </div>
-                        <div>
-                            <button onClick={() =>handleReponse(true)}>Vrai</button>
-                            <button onClick={() =>handleReponse(false)}>Faux</button>
-                        </div>
+            <div>
+                <div className="container-quiz" id="y">
+                    <div className="haut-page">
+                        <h1 className="titre">Bienvenue dans le quiz {name}</h1>
+                        <Link to="/connexionPage" className="page-connexion">Connexion page</Link>
                     </div>
-                : 
-                    <div>
-                        En attente d'autre joueurs...
+                    <hr/>
+
+                    <div className="question-area">
+                        {winner == null ? (
+                            
+                            (currentQuestion != null)
+                            ? 
+                                <div>
+                                    <p className="titre-question">Question:</p>
+                                    <div className="question-actuel">
+                                        {currentQuestion}
+                                    </div>
+                                    <div className="div-reponse">
+                                        <button onClick={() =>handleReponse(true)}>Vrai</button>
+                                        <button onClick={() =>handleReponse(false)}>Faux</button>
+                                    </div>
+                                </div>
+                            : 
+                                <div>
+                                    En attente d'autre joueurs...
+                                </div>
+
+                        ):(
+                            <div className="final-message">
+                                <p className="text-final">La partie est terminer</p>
+                                <p>Le gagnant est : {winner} avec un score de {winnerScore}</p>
+                                <p>Temps du gagant en secondes: {winnerTime}s</p>
+
+                            </div>
+                        )}
                     </div>
-
-            ):(
-                <div>
-                    <p>La partie est terminer</p>
-                    <p>Le gagnant est : {winner} avec un score de {winnerScore}</p>
-                    <p>Temps du gagant en secondes: {winnerTime}s</p>
-
                 </div>
-            )}
+            </div>
         </>
     );
 }

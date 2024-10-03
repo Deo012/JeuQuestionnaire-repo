@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../../reset.css";
+import "./connexionPage.css";
 import AuthProvider, { useAuth } from "../context/AuthProvider";
 
 const ConnexionPage = () => {
@@ -43,26 +44,35 @@ const ConnexionPage = () => {
     return (
         <>
             <div className="connexion-page-main">
-                <h1>Login</h1>
-                <form action="" method="POST">
-                    <i className="fa-solid fa-user"></i>
-                    <input 
-                        type="text" 
-                        id="username" 
-                        placeholder="Username"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                    <i className="fa-solid fa-lock"></i>
-                    <input 
-                        type="text" 
-                        id="password" 
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button type="submit" onClick={handelSubmit}>Login</button>
-                </form>
+                <div className="container">
+                    <h1>Connexion</h1>
+                    <form action="" method="POST">
+                        <div className="input-box">
+                            <input 
+                                type="text" 
+                                id="username" 
+                                placeholder="Nom utilisateur"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                            />
+                            <i className="fa-solid fa-user"></i>
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="text" 
+                                id="password" 
+                                placeholder="Mots de passe"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <i className="fa-solid fa-lock"></i>
+                        </div>
+                        <button className="btn" type="submit" onClick={handelSubmit}>Conneter</button>
+                        <div className="register-link">
+                            <p>Pas de compte? <a href="#">Enregistrer</a></p>
+                        </div>
+                    </form>
+                </div>
             </div>
         </>
     );
